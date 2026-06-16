@@ -2383,10 +2383,17 @@ function AICommand() {
     [Target, "Coaching plan", "Analyze a rep and prescribe drills"],
   ];
   const [out, setOut] = useState(null); const [busy, setBusy] = useState(false);
-  const run = (t) => { setBusy(true); setOut(null); setTimeout(() => { setBusy(false); setOut(MOCK_AI[t] || "Generated content (mock). Connect an OpenAI or Anthropic API key in Integrations to make this live."); }, 700); };
+  const run = (t) => {
+    setBusy(true); setOut(null);
+    const meta = tools.find((x) => x[1] === t);
+    const mock = MOCK_AI[t] || "Generated content (demo).";
+    OSP_AI.generateText(`${t} for OSP Sales University — ${meta ? meta[2] : ""}.`, mock)
+      .then((txt) => { setOut(txt || mock); setBusy(false); })
+      .catch(() => { setOut(mock); setBusy(false); });
+  };
   return (
     <div className="space-y-5">
-      <Card className="p-4"><div className="mb-2 flex items-center gap-2 font-semibold"><Bot size={18} color={C.blueSoft} /> System prompts</div>
+      <Card className="p-4"><div className="mb-2 flex items-center gap-2 font-semibold"><Bot size={18} color={C.blueSoft} /> System prompts <AIModeBadge /></div>
         <div className="text-sm" style={{ color: C.sub }}>Manage the master prompts that drive roleplay, coaching, and generators.</div>
         <div className="mt-3 grid gap-2 md:grid-cols-3">{["Roleplay Customer","Sales Coach","Recruiting Writer"].map((p) => (
           <div key={p} className="rounded-xl p-3" style={{ background: C.panel2, border: `1px solid ${C.border}` }}><div className="text-sm font-semibold">{p}</div><div className="mt-1 text-xs" style={{ color: C.green }}>● Active</div></div>
@@ -2401,7 +2408,7 @@ function AICommand() {
       ))}</div>
       {(busy || out) && <Card glow className="p-4"><div className="mb-2 flex items-center gap-2 font-semibold"><Sparkles size={16} color={C.gold} /> AI output</div>
         {busy ? <div className="text-sm" style={{ color: C.sub }}>Generating…</div> : <pre className="whitespace-pre-wrap text-sm" style={{ color: C.text, fontFamily: "inherit" }}>{out}</pre>}
-        <div className="mt-3 text-xs" style={{ color: C.sub }}>⚙ Mocked output. Add an API key in Integrations to go live.</div>
+        {!AI_LIVE && <div className="mt-3 text-xs" style={{ color: C.sub }}>⚙ Demo AI Mode — add <code>VITE_ANTHROPIC_API_KEY</code> and redeploy to go live.</div>}
       </Card>}
     </div>
   );
