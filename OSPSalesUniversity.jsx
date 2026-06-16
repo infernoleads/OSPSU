@@ -3120,10 +3120,17 @@ function RoleplaySession({ config, onClose, store, embedded }) {
   useEffect(() => { ref.current?.scrollTo(0, 9e9); }, [msgs, typing]);
   const send = () => {
     if (!val.trim()) return;
-    const me = val; setMsgs((m) => [...m, { r: "me", t: me }]); setVal("");
+    const me = val; const prev = msgs; setMsgs((m) => [...m, { r: "me", t: me }]); setVal("");
     const nt = turns + 1; setTurns(nt); setTyping(true);
-    setTimeout(() => { setTyping(false); setMsgs((m) => [...m, { r: "ai", t: personaReply(config, nt, me) }]); }, 650);
+    const fallback = personaReply(config, nt, me);
+    const convo = [...prev, { r: "me", t: me }].map((m) => (m.r === "me" ? "Rep: " : "Customer: ") + m.t).join("\n");
+    const ctx = `You are a ${config.persona} ${config.env} customer. The sales rep's goal is to ${config.goal}. Conversation so far:\n${convo}\nReply as the customer in 1-2 short sentences, staying fully in character.`;
+    const delay = new Promise((r) => setTimeout(r, 500));
+    Promise.all([OSP_AI.roleplayResponse(ctx, fallback), delay])
+      .then(([reply]) => { setTyping(false); setMsgs((m) => [...m, { r: "ai", t: reply || fallback }]); })
+      .catch(() => { setTyping(false); setMsgs((m) => [...m, { r: "ai", t: fallback }]); });
   };
+  const [aiFb, setAiFb] = useState("");
   const finish = () => setStage("score");
 
   // derive a believable scorecard from engagement
@@ -3136,7 +3143,12 @@ function RoleplaySession({ config, onClose, store, embedded }) {
   const weakest = Object.entries(scores).sort((a, b) => a[1] - b[1])[0][0];
   const nextDrill = DRILLS.find((d) => d.cat === (config.cat || "Discovery questions")) || DRILLS[0];
 
-  useEffect(() => { if (stage === "score" && store) store.notify(`Roleplay complete · +${xp} XP`); }, [stage]);
+  useEffect(() => { if (stage === "score" && store) {
+    store.notify(`Roleplay complete · +${xp} XP`);
+    const transcript = msgs.map((m) => (m.r === "me" ? "Rep: " : "Customer: ") + m.t).join("\n");
+    const mock = `What you did well: a strong, confident opener and a professional tone — you kept composure with a ${config.persona} customer. What needs work: your ${weakest} was the lowest score. Slow down there and earn the next step before pitching.`;
+    OSP_AI.scoreRoleplay(`Scores: ${JSON.stringify(scores)}. Goal: ${config.goal}. Transcript:\n${transcript}\nIn 2-3 sentences tell the rep what they did well and what to improve.`, mock).then((t) => setAiFb(t || mock)).catch(() => setAiFb(mock));
+  } }, [stage]);
 
   if (stage === "chat") return (
     <div className="space-y-3">
@@ -3176,10 +3188,14 @@ function RoleplaySession({ config, onClose, store, embedded }) {
         <Card className="p-4"><div className="mb-2 font-semibold">Scorecard</div>
           <ResponsiveContainer width="100%" height={230}><RadarChart data={radar}><PolarGrid stroke={C.border} /><PolarAngleAxis dataKey="k" tick={{ fill: C.sub, fontSize: 10 }} /><Radar dataKey="v" stroke={C.gold} fill={C.gold} fillOpacity={0.4} /></RadarChart></ResponsiveContainer>
         </Card>
-        <Card className="p-4"><div className="mb-2 flex items-center gap-2 font-semibold"><Bot size={16} color={C.blueSoft} /> AI feedback</div>
+        <Card className="p-4"><div className="mb-2 flex items-center gap-2 font-semibold"><Bot size={16} color={C.blueSoft} /> AI feedback <AIModeBadge /></div>
           <div className="space-y-2 text-sm" style={{ color: C.sub }}>
-            <p><b style={{ color: C.green }}>What you did well:</b> Strong, confident opener and a professional tone — you kept your composure with a {config.persona} customer.</p>
-            <p><b style={{ color: C.gold }}>What needs work:</b> Your <b>{weakest}</b> was your lowest score. Slow down there and earn the next step before pitching.</p>
+            {aiFb
+              ? <p style={{ color: C.sub }}>{aiFb}</p>
+              : <>
+                  <p><b style={{ color: C.green }}>What you did well:</b> Strong, confident opener and a professional tone — you kept your composure with a {config.persona} customer.</p>
+                  <p><b style={{ color: C.gold }}>What needs work:</b> Your <b>{weakest}</b> was your lowest score. Slow down there and earn the next step before pitching.</p>
+                </>}
             <div className="mt-2 rounded-lg p-2" style={{ background: C.blue + "12" }}>
               <div className="text-xs font-semibold" style={{ color: C.text }}>Recommended next drill</div>
               <div className="mt-1 flex items-center justify-between"><span style={{ color: C.text }}>{nextDrill.title}</span><Pill color={C.blue}>{nextDrill.cat}</Pill></div>
@@ -3253,6 +3269,7 @@ function TestExperience({ course, store, onClose }) {
   const [answers, setAnswers] = useState({});
   const [sel, setSel] = useState(null);
   const [time, setTime] = useState(Q_TIMES[0]);
+  const [aiCoach, setAiCoach] = useState("");
 
   const total = QUIZ.length;
   const estMin = Math.ceil(Q_TIMES.reduce((a, b) => a + b, 0) / 60);
@@ -3278,7 +3295,14 @@ function TestExperience({ course, store, onClose }) {
   const correctCount = QUIZ.reduce((n, q, i) => n + (answers[i] === q.correct ? 1 : 0), 0);
   const pct = Math.round((correctCount / total) * 100);
   const passed = pct >= 80;
-  useEffect(() => { if (stage === "results" && store) store.notify(passed ? `Passed ${course.title}! Certificate earned` : "Test scored — review & retake"); }, [stage]);
+  useEffect(() => { if (stage === "results" && store) {
+    store.notify(passed ? `Passed ${course.title}! Certificate earned` : "Test scored — review & retake");
+    const wrong = QUIZ.filter((q, i) => answers[i] !== q.correct).map((q) => q.q);
+    const mock = passed
+      ? `Great work passing ${course.title} at ${pct}%. The fundamentals are solid — keep sharpening ${wrong[0] ? `"${wrong[0]}"` : "your objection responses"} and take it straight into a live roleplay this week.`
+      : `You scored ${pct}% on ${course.title} — close. Focus your retake on ${wrong[0] ? `"${wrong[0]}"` : "the questions you missed"}, review the explanations below, then run one drill on that skill before trying again. You've got this.`;
+    OSP_AI.generateText(`A rep scored ${pct}% on the ${course.title} test. Missed: ${wrong.join("; ") || "none"}. Give 2-3 sentences of encouraging, specific coaching.`, mock).then((t) => setAiCoach(t || mock)).catch(() => setAiCoach(mock));
+  } }, [stage]);
 
   if (stage === "intro") return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -3355,6 +3379,7 @@ function TestExperience({ course, store, onClose }) {
         <div className="mt-1 text-sm" style={{ color: C.sub }}>You scored {correctCount}/{total} ({pct}%). {passed ? "Your certificate is unlocked." : "You need 80%. Review the AI notes and try again."}</div>
         {passed && <Pill color={C.green}><Award size={12} /> {course.title} Certified</Pill>}
       </Card>
+      {aiCoach && <Card className="p-4" style={{ background: C.blue + "0d" }}><div className="mb-1 flex items-center gap-2 font-semibold"><Bot size={16} color={C.blueSoft} /> AI coach <AIModeBadge /></div><div className="text-sm" style={{ color: C.sub }}>{aiCoach}</div></Card>}
       <Card className="p-4"><div className="mb-3 font-semibold">Review & AI coaching</div>
         <div className="space-y-3">{QUIZ.map((q, i) => {
           const right = answers[i] === q.correct;
