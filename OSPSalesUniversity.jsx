@@ -83,7 +83,7 @@ const STUDENTS = range(50).map((i) => {
   const rankIdx = Math.min(9, Math.floor(xp / 1000));
   return {
     id: "S" + (1000 + i), name: `${f} ${l}`, first: f, role: "Student",
-    email: `${f.toLowerCase()}.${l.toLowerCase()}@osp.com`,
+    email: `${f.toLowerCase()}.${l.toLowerCase()}@ospsu.com`,
     city: city[0], state: city[1], source: pick(SOURCES), xp,
     rank: RANKS[rankIdx], rankIdx, manager: "M" + (1 + (i % 8)),
     courses: Math.floor(rnd() * 10), drills: Math.floor(rnd() * 80),
@@ -315,12 +315,14 @@ const DRILLS = range(100).map((i) => {
   const cat = DRILL_CATS[i % DRILL_CATS.length];
   const t = DRILL_TEMPLATES[cat][i % 3];
   const diff = DIFFS[i % 4];
+  const vertical = ENVS[i % ENVS.length];
+  const persona = pick(["friendly","skeptical","busy","rude","analytical","price-sensitive"]);
   return {
-    id: "D" + (1 + i), title: t, cat, diff,
+    id: "D" + (1 + i), title: t, cat, diff, vertical,
     objective: `Master "${cat}" under ${diff.toLowerCase()} pressure.`,
     instructions: `Launch the AI roleplay. You have one scenario. Apply the ${cat.toLowerCase()} technique and adapt to the customer's reaction in real time.`,
     success: `Score 80%+ on ${cat} and reach the agreed next step.`,
-    scenario: `${pick(ENVS)} • ${pick(["friendly","skeptical","busy","rude","analytical","price-sensitive"])} customer`,
+    scenario: `${vertical} • ${persona} customer`,
     mins: 3 + (i % 5),
   };
 });
@@ -337,6 +339,19 @@ const COURSES = [
   { id: 9, title: "Closing Mastery", env: "Skill", icon: Target, color: C.blue, modules: ["Assumptive close","Choice close","Summary close","Urgency without pressure","Trial close","Direct close","Next-step close","Silence after the close"] },
   { id: 10, title: "Leadership & Ownership Path", env: "Leadership", icon: Crown, color: C.gold, modules: ["Personal accountability","Coaching others","Running morning meetings","Tracking numbers","Building a team","Recruiting mindset","Leadership communication","Becoming an office leader"] },
 ].map((c, i) => ({ ...c, progress: [100,72,45,0,88,30,0,60,15,0][i], lessons: c.modules.length, enrolled: 120 - i * 7 }));
+
+const COURSE_OVERVIEW = {
+  1: "Your first stop at OSP. Learn who we are, the standard you carry every time you represent the brand, and the exact game plan for a fast, confident start.",
+  2: "The bedrock of every great rep. What selling really is, how to build instant trust, and the daily habits that turn raw effort into consistent results.",
+  3: "Master the phone. Voice, openers, objection handling, and closing — everything that wins when the customer can't see you.",
+  4: "Own the doorstep. Territory mindset, first impressions, and closing on the step with confidence and professionalism.",
+  5: "Command the retail floor. Approach shoppers naturally, create curiosity fast, and turn browsers into buyers.",
+  6: "Sell to businesses. Owner psychology, gatekeepers, ROI conversations, and the calm, professional B2B close.",
+  7: "Perform in public. Confidence in open spaces, non-awkward approaches, and fast closes powered by crowd energy.",
+  8: "Turn objections into sales. The mindset and the exact responses for every common 'no' you'll hear in the field.",
+  9: "The art of the close. Assumptive, choice, trial, and urgency closes — plus the silence that seals the deal.",
+  10: "From rep to office leader. Accountability, coaching, running meetings, and building a team that builds a legacy.",
+};
 
 const BADGES = [
   ["First Login", Star], ["First Roleplay", Bot], ["10 Drills Done", Dumbbell], ["Objection Crusher", ShieldCheck],
@@ -394,6 +409,13 @@ const APTITUDE_MAX = APTITUDE.length * 3;
 /* ===================== UPGRADE DATA ===================== */
 
 /* --- Course video lessons (Welcome to OSP = id 1, Sales Foundations = id 2) --- */
+const VERTICAL_META = {
+  "Telesales": { icon: Phone, color: "#37d399", blurb: "Win on the phone — voice, openers, and closing without the in-person cues." },
+  "Door-to-Door": { icon: DoorOpen, color: "#9b6bff", blurb: "Own the doorstep — first impressions, knock strategy, and closing on the step." },
+  "Retail": { icon: Store, color: "#7c9bff", blurb: "Command the floor — approach shoppers, create curiosity, and close fast." },
+  "B2B": { icon: Building2, color: "#e9b949", blurb: "Sell to businesses — gatekeepers, value props, and the professional close." },
+  "Public Selling": { icon: Megaphone, color: "#ff6b81", blurb: "Perform in the open — confident approaches and quick closes in public spaces." },
+};
 const VIDEO_LESSONS = {
   1: [
     { title: "Welcome to OSP Sales University", duration: "4:12", desc: "Your launchpad into a real sales career — what this university is and why you're here.",
@@ -440,6 +462,118 @@ const VIDEO_LESSONS = {
     { title: "Closing the Next Step", duration: "5:30", desc: "Why every great conversation ends with a clear next step.",
       objectives: ["Always define the next step", "Use trial closes", "Close with confidence, not pressure"],
       transcript: "Closing isn't one dramatic moment at the end — it's a series of small, confident next steps.\n\nThroughout the conversation, use trial closes: 'How does this sound so far?' Their answer tells you exactly where you stand.\n\nWhen it's time, don't get timid and trail off. Be calm and direct: 'Here's what I'd recommend — let's get you started.' Then stop talking. Silence after the ask is your most powerful tool.\n\nAnd if it's not a yes today, never leave empty-handed. Set the next step — a callback, a follow-up, a referral. A conversation with a clear next step is never wasted. That's how pros turn maybes into momentum." },
+  ],
+  3: [
+    { title: "Phone Voice & Tone", duration: "4:30", desc: "Your voice is your entire first impression on a call — make it land.",
+      objectives: ["Project warmth and confidence", "Control pace and pauses", "Smile through the phone"],
+      transcript: "On the phone you lose body language, eye contact, and a handshake. All you have is your voice — so it has to do all the work.\n\nThree things move the needle: pace, tone, and energy. Slow down about 10% from your normal speed; rushing reads as nervous and scripted. Drop your tone slightly at the end of statements so you sound certain, not unsure. And smile — it physically changes your sound, and people hear it.\n\nRecord yourself once; you'll be shocked what you catch. The rep who sounds calm, warm, and sure wins the first five seconds — and the first five seconds decide whether they keep listening." },
+    { title: "Openers That Earn 30 Seconds", duration: "5:00", desc: "Your opener's only job is to buy the next thirty seconds.",
+      objectives: ["Pattern-interrupt politely", "State a clear reason", "Earn permission to continue"],
+      transcript: "The goal of a phone opener isn't to sell — it's to earn the next thirty seconds.\n\nLead with a quick pattern-interrupt and an honest reason: 'Hi Maria, it's Marcus with OSP — I know I'm catching you out of the blue, do you have a quick minute?' Being upfront about the interruption lowers their guard. Then give a one-line reason that hints at value, not features.\n\nNever open with a monologue. Ask a small question early so it's a conversation, not a broadcast. If they give you the thirty seconds, you've already won the hardest part of the call." },
+    { title: "Handling Hang-Up Energy", duration: "4:15", desc: "The no's come fast on the phone. Stay warm and protect your energy.",
+      objectives: ["Stay warm under rejection", "Reframe a fast no", "Reset for the next call"],
+      transcript: "Telesales lives and dies on resilience, because the no's come fast and often.\n\nWhen someone's short or cold, don't match their energy — stay warm and calm. A simple 'Totally fair, I'll be quick' disarms more people than any clever line. If they still say no, accept it gracefully; a respectful no today can become a yes on a callback.\n\nThe real skill is protecting your own energy. Every call starts at zero — the last rejection has nothing to do with the next person. Reset, breathe, dial. Volume plus warmth is the telesales formula." },
+    { title: "Closing by Phone", duration: "5:20", desc: "Close without the visual cues by listening harder and asking clearly.",
+      objectives: ["Trial close to test readiness", "Ask clearly, then go silent", "Always set a next step"],
+      transcript: "Closing on the phone is the same as in person, just without the visual cues — so you have to listen harder.\n\nUse trial closes to read the room you can't see: 'How does that sound so far?' Their tone tells you everything. When it's time, ask plainly and then stop talking. Silence on the phone feels longer — let it work for you.\n\nAnd never hang up without a defined next step: a scheduled callback, a sent agreement, a confirmed appointment. A call with a next step is progress. A call without one is a story you'll never finish." },
+  ],
+  4: [
+    { title: "The Territory Mindset", duration: "4:00", desc: "Your territory is your business. Consistency is the whole game.",
+      objectives: ["Treat the territory as a business", "Play the numbers calmly", "Stay consistent door to door"],
+      transcript: "Door-to-door rewards one thing above all: consistency. Your territory is your business, and every door is a customer who hasn't met you yet.\n\nThe pros don't get emotional about any single door. They know their numbers — knock enough quality doors with a good approach and the sales come. A no just moves you closer to the next yes.\n\nWalk with purpose, keep your energy even from door one to door fifty, and protect your attitude like it's your paycheck — because it is." },
+    { title: "The First Seven Seconds", duration: "4:40", desc: "You're judged at the door before you say much. Win comfort first.",
+      objectives: ["Win the doorstep first impression", "Use open body language", "Disarm with a smile and a reason"],
+      transcript: "At the door, you're judged in about seven seconds — before you say much of anything.\n\nStand slightly back from the door, not crowding it. Smile genuinely, keep your hands visible and relaxed, and lead with calm confidence. People decide if they're comfortable before they decide if they're interested.\n\nOpen with a friendly, honest reason you're there. You're a neighbor with something useful, not a stranger with an agenda. Win comfort first; interest comes right behind it." },
+    { title: "Handling 'Not Interested' at the Door", duration: "5:10", desc: "The reflex no isn't a real no. Reopen it with curiosity.",
+      objectives: ["Don't take the reflex no personally", "Reframe with a quick question", "Exit with grace if it's real"],
+      transcript: "'Not interested' at the door is usually a reflex, not a decision — most people say it before they even know what you offer.\n\nDon't argue and don't deflate. Acknowledge and pivot with a light question: 'Totally fair — most folks say that until they hear the one thing that actually saves them money. Can I take ten seconds?' Curiosity reopens the door the reflex closed.\n\nIf it's a genuine no, leave warm and professional. You're building a reputation in that neighborhood. A gracious exit today can become a wave-in next time." },
+    { title: "Closing on the Doorstep", duration: "5:00", desc: "Read the signals, ask assumptively, and lock the next step.",
+      objectives: ["Read body language for buying signals", "Ask assumptively", "Lock the next step on the spot"],
+      transcript: "Doorstep closing rewards reps who read body language. Leaning in, asking questions, checking with a partner — those are green lights.\n\nWhen you see them, go assumptive: 'Let's get you set up — I just need a couple quick details.' Confidence is contagious; so is hesitation. Keep your tone calm and certain.\n\nIf they're not ready today, never walk away empty. Set the next step right there — a scheduled return, a follow-up time, a neighbor referral. On the doorstep, momentum is everything." },
+  ],
+  5: [
+    { title: "Approaching Shoppers", duration: "4:20", desc: "Skip the 'can I help you' trap. Open with curiosity instead.",
+      objectives: ["Open without the 'can I help you' trap", "Lead with curiosity", "Read browsing signals"],
+      transcript: "The fastest way to kill a retail sale is the robotic 'Can I help you?' — it earns an automatic 'just looking.'\n\nInstead, approach with a comment or curious question tied to what they're already looking at: 'That one's our most popular — are you shopping for yourself or someone else?' You've started a conversation, not a transaction.\n\nWatch for signals: someone who slows down, picks something up, or glances around for help is ready. Time your approach to their interest, not your script." },
+    { title: "Creating Curiosity & The Short Pitch", duration: "4:50", desc: "Seconds and competition for attention — make the pitch tight.",
+      objectives: ["Hook in one sentence", "Sell outcomes, not specs", "Keep it short on the floor"],
+      transcript: "On a retail floor you have seconds and competition for attention, so your pitch has to be tight.\n\nLead with the outcome, not the feature list: 'This is the one that saves people about an hour a day.' Curiosity buys you the next question. Then let them hold it, try it, picture owning it — involvement beats explanation.\n\nKeep it short. The floor is fast. Hook, involve, then guide them toward the decision before the moment passes." },
+    { title: "Multi-Customer Awareness", duration: "4:10", desc: "Juggle the floor without losing a ready buyer.",
+      objectives: ["Manage more than one shopper", "Park and return smoothly", "Never lose a ready buyer"],
+      transcript: "Busy floors mean juggling, and the rookie mistake is going all-in on one shopper while three ready buyers walk.\n\nLearn to park and return: 'Give me ten seconds, I'll be right back with you' keeps someone warm while you greet another. A quick acknowledgment holds attention far longer than silence.\n\nPrioritize the ready buyer — the one holding the product, checking the price, looking for you. Serve the hot lead first, keep the others warm, and you'll close more without anyone feeling ignored." },
+    { title: "Transitioning to the Close", duration: "5:00", desc: "A smooth transition, not a hard pivot. Don't re-sell a sold customer.",
+      objectives: ["Spot the buying moment", "Use the assumptive close", "Add value at the register"],
+      transcript: "In retail, the close is a smooth transition, not a hard pivot. When they say 'I like this,' that's your cue.\n\nGo assumptive and helpful: 'Perfect — let's get you taken care of at the register.' Don't re-sell a sold customer; just guide them. Over-talking after the yes is how reps lose easy sales.\n\nAt the register, add value, not pressure — the companion item that genuinely helps. Done right, the upsell feels like service, and the customer leaves happier than they came in." },
+  ],
+  6: [
+    { title: "The Business-Owner Mindset", duration: "4:30", desc: "Owners think in time, money, and risk — speak their language.",
+      objectives: ["Think in ROI, not features", "Respect their time", "Speak owner-to-owner"],
+      transcript: "Selling to a business owner is different — they think in time, money, and risk, not features.\n\nEvery sentence should connect to their bottom line: more revenue, less cost, less hassle. Respect their time ruthlessly; owners forgive a lot but never wasted minutes. Come prepared, get to the point, and prove you understand their world.\n\nTalk to them like a peer who can help them win, not a vendor reading a script. Owners buy from people who make their business better." },
+    { title: "Getting Past the Gatekeeper", duration: "4:45", desc: "The gatekeeper can hand you the meeting — make them an ally.",
+      objectives: ["Treat the gatekeeper as an ally", "Be confident and respectful", "Earn the introduction"],
+      transcript: "The gatekeeper isn't your enemy — they're the person who can hand you the meeting if you treat them right.\n\nBe warm, confident, and respectful. Use their name, be honest about why you're there, and never try to slip past them — they remember. A gatekeeper who likes you becomes your inside advocate.\n\nGive them a clear, value-focused reason to connect you: 'I help businesses like yours cut acquisition costs — who's the right person to talk to?' Respect plus clarity opens the door arrogance never will." },
+    { title: "The ROI Conversation", duration: "5:30", desc: "Make the math obvious and honest — the price stops being the issue.",
+      objectives: ["Quantify the value", "Use simple, real numbers", "Make the math obvious"],
+      transcript: "B2B decisions get justified with numbers, so your job is to make the math obvious and honest.\n\nFrame value in their terms: 'If this saves each rep an hour a day, across your team that's hours a week back.' Real, simple numbers beat vague benefits. When the ROI is clear, the price stops being the conversation.\n\nDon't oversell or inflate — owners smell it instantly. Conservative, credible numbers build the trust that closes deals and keeps the account for years." },
+    { title: "The Professional Close & Follow-Up", duration: "5:00", desc: "Calm, clear closes and disciplined follow-up win B2B.",
+      objectives: ["Close with a clear recommendation", "Define next steps and owners", "Follow up like a pro"],
+      transcript: "B2B closes are calm and clear, not pushy. After you've built value, make a direct recommendation: 'Based on what you've told me, here's what I'd do.'\n\nDefine the next step precisely — who does what by when. Ambiguity kills B2B deals; clarity moves them. Confirm it in writing the same day.\n\nThen follow up with discipline. Most B2B sales happen after several touches, so be the rep who stays professional, helpful, and persistent. Consistency separates closers from order-takers in B2B." },
+  ],
+  7: [
+    { title: "Confidence in Public Spaces", duration: "4:00", desc: "Public selling tests your comfort being seen. Don't shrink.",
+      objectives: ["Own your space calmly", "Project relaxed confidence", "Beat the approach jitters"],
+      transcript: "Public selling tests one thing first: your comfort being seen. If you're tense, people feel it and avoid you.\n\nPlant yourself with calm, open posture. Move with purpose, not apology. The more relaxed and confident you look, the more approachable you become. Confidence in public is mostly the decision to not shrink.\n\nBeat the jitters with reps. The first approach is the hardest; by the tenth it's normal. Warm up early and let momentum carry your energy." },
+    { title: "The Non-Awkward Approach", duration: "4:40", desc: "Keep it light and human. Earn a small yes first.",
+      objectives: ["Open light and natural", "Read pace and timing", "Earn a micro-yes"],
+      transcript: "In public, a heavy approach scares people off. Keep it light, human, and low-pressure.\n\nLead with a friendly comment or easy question, not a pitch. Match their pace — someone strolling is open, someone rushing isn't. Read the moment before you commit.\n\nAim for a small first yes: a smile, a pause, a 'sure.' Micro-commitments build into conversations. You're not closing on the approach — you're earning the right to keep talking." },
+    { title: "Handling Public Rejection", duration: "4:30", desc: "Stay unbothered when others are watching — it actually attracts people.",
+      objectives: ["Stay unbothered when seen", "Reset instantly", "Keep your energy high"],
+      transcript: "Public rejection stings extra because it happens in front of people — and that's exactly the skill to master.\n\nKeep your reaction light and unbothered. A smile and a 'no worries, have a great day' tells everyone watching that rejection doesn't rattle you — and that confidence attracts the next person.\n\nReset instantly. The crowd has a short memory; so should you. High energy and a thick skin turn a tough environment into your advantage." },
+    { title: "Crowd Energy & The Fast Close", duration: "4:50", desc: "Crowds run on energy and social proof. Close before the moment passes.",
+      objectives: ["Use social proof", "Create gentle urgency", "Close before the moment passes"],
+      transcript: "Crowds move on energy and social proof. When one person engages, others notice — use that.\n\nKeep your energy magnetic and let small wins build momentum. A little honest urgency helps: in public, the moment is now; people won't come back later. Make deciding easy and quick.\n\nClose before the moment passes. Public buyers decide fast, so guide them confidently to the yes while the energy is high. Hesitation lets the moment — and the sale — walk away." },
+  ],
+  8: [
+    { title: "The Objection Mindset", duration: "4:10", desc: "Objections are signals, not rejection. Get calm and curious.",
+      objectives: ["See objections as signals", "Stay calm and curious", "Acknowledge before answering"],
+      transcript: "Objections aren't rejection — they're requests for more information. A customer who objects is still engaged.\n\nThe pro move is calm curiosity, not defensiveness. Acknowledge first: 'That's fair.' Validation lowers the wall. Then get curious about what's really behind it. The stated objection is rarely the real one.\n\nMaster this mindset and objections stop being scary. They become the exact moments where sales are actually made." },
+    { title: "'Too Expensive' & Price", duration: "5:00", desc: "Price means 'I don't see the value yet.' Reframe before you discount.",
+      objectives: ["Reframe price as value", "Isolate the real concern", "Never panic-discount"],
+      transcript: "'Too expensive' almost always means 'I don't see the value yet' — not 'I can't afford it.'\n\nDon't flinch and don't slash the price. Reframe to outcome: 'Compared to what it costs to keep doing it the current way?' Anchor the value before you ever touch the number. Then isolate: 'Is it the price, or the fit?' so you solve the real issue.\n\nDiscounting on reflex trains customers to push and shreds your credibility. Hold your value, and most price objections dissolve." },
+    { title: "'I Need to Think About It'", duration: "4:40", desc: "The polite parking spot for a hidden concern. Surface it kindly.",
+      objectives: ["Surface the hidden hesitation", "Keep the conversation alive", "Make the next step easy"],
+      transcript: "'I need to think about it' is the polite parking spot for an unspoken concern. Your job is to find it kindly.\n\nGently surface it: 'Totally understand — usually when people say that, there's one specific thing on their mind. What's yours?' Nine times out of ten they'll tell you the real objection, and now you can actually handle it.\n\nIf they truly need time, make the next step concrete and easy. A vague 'I'll think about it' with no follow-up is a slow no. A scheduled next touch keeps it alive." },
+    { title: "'Not Interested' & Trust", duration: "5:00", desc: "Reflex no's and distrust come from bad past reps — not you.",
+      objectives: ["Reopen a reflex no", "Build instant credibility", "Win the skeptic"],
+      transcript: "'Not interested' and 'I don't trust salespeople' are reflexes built from bad past experiences — not personal to you.\n\nDisarm with honesty and lightness: 'Totally fair — and honestly, most people don't trust salespeople. Let me just be straight with you.' Naming it builds instant credibility.\n\nThen earn trust fast with a small honest moment — admit a limitation, keep a tiny promise. Skeptics become your best customers once you prove you're different. Don't push through the wall; walk around it with honesty." },
+  ],
+  9: [
+    { title: "The Assumptive & Choice Close", duration: "4:40", desc: "The strongest closes feel natural. Assume the yes or offer a choice.",
+      objectives: ["Close assuming the yes", "Offer a choice, not yes/no", "Stay calm and certain"],
+      transcript: "The strongest closes feel natural, not forced. Two of the most reliable: the assumptive and the choice close.\n\nAssumptive: act as if the decision is made — 'Let's get you started, I just need a few details.' Confidence gives permission to say yes. Choice: replace yes/no with this-or-that — 'Did you want to start today or set it up for next week?' Either answer is a sale.\n\nThe key is calm certainty. You're not pressuring; you're guiding a decision they're already leaning toward." },
+    { title: "Trial Close & Reading Signals", duration: "4:30", desc: "Test the temperature all the way through and close when they're ready.",
+      objectives: ["Test readiness early", "Read verbal and body signals", "Close on the green light"],
+      transcript: "Great closers don't wait until the end — they test the temperature all the way through with trial closes.\n\n'How does this sound so far?' 'Could you see yourself using this?' The answers reveal exactly where they stand. Combine that with signals — questions about price, terms, or 'how soon' — those are buying signals shouting at you.\n\nClose when they're ready, not when your pitch is finished. Often that's earlier than you think. Listen, read, and ask the moment the green light appears." },
+    { title: "Urgency Without Pressure", duration: "4:50", desc: "Honest urgency pulls people forward. Fake scarcity destroys trust.",
+      objectives: ["Create honest urgency", "Avoid sleazy tactics", "Make now the easy choice"],
+      transcript: "Urgency closes deals — but only honest urgency. Fake scarcity destroys trust the moment it's discovered.\n\nUse real reasons to act now: a genuine deadline, a current benefit, the simple cost of waiting. 'Every week you wait is another week of the old problem' is honest and effective. Make 'now' the logical choice, not a manipulated one.\n\nPressure pushes people away; honest urgency pulls them forward. The difference is whether you're helping them or cornering them. Always help." },
+    { title: "The Ask & The Silence", duration: "5:10", desc: "Most lost sales die from a rep who never clearly asks.",
+      objectives: ["Ask clearly and directly", "Hold the silence", "Always secure a next step"],
+      transcript: "After all the value, you still have to ask — and most lost sales die from a rep who never clearly asks.\n\nMake the ask calm and direct: 'Let's get you set up.' Then stop talking. The silence after the ask is the most powerful moment in selling — whoever speaks first usually concedes, so let it be them.\n\nIf it's not a yes, never leave without a next step. A confident ask plus a disciplined next step is the entire game. Master those two and you'll close more than reps with twice your talking." },
+  ],
+  10: [
+    { title: "Accountability: From Rep to Leader", duration: "4:30", desc: "Leadership starts with total ownership of your own results.",
+      objectives: ["Own your numbers fully", "Lead yourself first", "Model the standard"],
+      transcript: "Leadership at OSP starts long before you have a title — it starts with total ownership of your own results.\n\nLeaders don't make excuses or blame the territory, the leads, or the weather. They own the number, find the gap, and fix it. When you lead yourself flawlessly, people start following before you're ever promoted.\n\nThe standard you walk past is the standard you accept. Model the effort, attitude, and consistency you want from a team — that's the real interview for leadership." },
+    { title: "Coaching Others", duration: "5:00", desc: "Your results now come through other people. Coach, don't command.",
+      objectives: ["Develop people, don't just direct", "Give specific feedback", "Build confidence through reps"],
+      transcript: "Becoming a leader means your results now come through other people — a completely different skill.\n\nCoaching beats commanding. Watch a rep work, give one specific, kind piece of feedback, and have them try it immediately. Vague praise and vague criticism both fail; specificity is the gift. 'Slow down on your opener and ask one question first' beats 'be better.'\n\nBuild confidence with reps and small wins. People grow when they feel capable. Your job as a leader is to make others better than they thought they could be." },
+    { title: "Running the Morning Meeting", duration: "4:40", desc: "Twenty minutes that set the temperature for the whole day.",
+      objectives: ["Set the day's energy", "Review numbers simply", "Send the team out fired up"],
+      transcript: "The morning meeting sets the temperature for the entire day. As a leader, that twenty minutes is your highest-leverage moment.\n\nKeep it tight and energizing: a quick win to celebrate, a clear focus for the day, one skill to sharpen, and the numbers in plain sight. Recognize publicly, coach privately. People run through walls for leaders who make them feel seen.\n\nSend them out believing today is a great day to sell. Energy is contagious, and it starts with you." },
+    { title: "Building a Team", duration: "5:20", desc: "From me to we — build people who build others. That's the legacy.",
+      objectives: ["Recruit constantly", "Develop future leaders", "Build something bigger than yourself"],
+      transcript: "The final step from performer to leader is building something that outlasts your own production — a team.\n\nGreat leaders recruit constantly, always looking for driven, coachable people. Then they develop them into leaders who can develop others. That multiplication is how offices grow and how careers at OSP truly take off.\n\nStop asking 'how do I hit my number' and start asking 'how do I build people who hit theirs.' That shift — from me to we — is the whole game. Build leaders, and you build a legacy. That's the OSP way." },
   ],
 };
 
@@ -2229,6 +2363,13 @@ function CourseDetail({ course, onBack, admin }) {
           <div className="flex-1"><div className="text-xl font-bold">{course.title}</div><div className="text-sm" style={{ color: C.sub }}>{course.env} Academy · {lessons.length || course.lessons} lessons · quiz + certificate</div></div>
           <Ring value={lessons.length ? vidPct : course.progress} size={70} color={course.color} />
         </div>
+        <div className="px-5 pb-5">
+          <p className="text-sm" style={{ color: C.sub }}>{COURSE_OVERVIEW[course.id] || "Build real, practical sales skill you can use on your very next conversation."}</p>
+          <div className="mt-3 text-xs font-bold uppercase tracking-wide" style={{ color: C.gold }}>What you'll learn</div>
+          <div className="mt-2 grid gap-x-4 gap-y-1.5 md:grid-cols-2">{course.modules.slice(0, 8).map((m) => (
+            <div key={m} className="flex items-start gap-2 text-sm" style={{ color: C.text }}><CheckCircle2 size={15} color={course.color} className="mt-0.5 shrink-0" /> {m}</div>
+          ))}</div>
+        </div>
       </Card>
 
       {lessons.length > 0 && (
@@ -2329,37 +2470,106 @@ function Quiz({ open, onClose, course }) {
 }
 
 function DrillsView({ store }) {
-  const [cat, setCat] = useState("All"); const [diff, setDiff] = useState("All"); const [sel, setSel] = useState(null);
-  const [live, setLive] = useState(null); // drill being roleplayed
-  const [show, setShow] = useState(24);
-  const filtered = DRILLS.filter((d) => (cat === "All" || d.cat === cat) && (diff === "All" || d.diff === diff));
+  const [vert, setVert] = useState("All");
+  const [diff, setDiff] = useState("All");
+  const [q, setQ] = useState("");
+  const [show, setShow] = useState(18);
+  const [sel, setSel] = useState(null);
+  const [live, setLive] = useState(null);
   const diffColor = { Beginner: C.green, Intermediate: C.blueSoft, Advanced: C.gold, Brutal: C.red };
   const launch = (d) => { setSel(null); setLive(d); };
+  const verticals = Object.keys(VERTICAL_META);
+  const match = (d) => (diff === "All" || d.diff === diff) && (!q || (d.title + d.cat + d.scenario).toLowerCase().includes(q.toLowerCase()));
+
+  const DrillCard = (d) => (
+    <Card key={d.id} className="osp-hover flex flex-col p-4">
+      <div className="mb-2 flex items-center justify-between"><Pill color={C.blue}>{d.cat}</Pill><Pill color={diffColor[d.diff]}>{d.diff}</Pill></div>
+      <div className="font-semibold" style={{ color: C.text }}>{d.title}</div>
+      <div className="mt-1 text-xs" style={{ color: C.sub }}>{d.scenario} · {d.mins} min</div>
+      <div className="mt-3 flex gap-2">
+        <Btn kind="soft" className="flex-1" onClick={() => setSel(d)}>Details</Btn>
+        <Btn kind="gold" className="flex-1" onClick={() => launch(d)}><Play size={14} /> Launch</Btn>
+      </div>
+    </Card>
+  );
+
+  const Tabs = (
+    <div className="flex flex-wrap gap-2">
+      <button onClick={() => { setVert("All"); setShow(18); }} className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold"
+        style={vert === "All" ? { ...grad(C.blue, C.blueSoft), color: "#fff" } : { background: C.panel2, border: `1px solid ${C.border}`, color: C.sub }}>
+        <Dumbbell size={15} /> All <span className="opacity-70">({DRILLS.length})</span>
+      </button>
+      {verticals.map((v) => {
+        const M = VERTICAL_META[v]; const n = DRILLS.filter((d) => d.vertical === v).length;
+        return (
+          <button key={v} onClick={() => { setVert(v); setShow(18); }} className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold"
+            style={vert === v ? { background: M.color, color: "#0b0b0b" } : { background: C.panel2, border: `1px solid ${C.border}`, color: C.sub }}>
+            <M.icon size={15} /> {v} <span className="opacity-70">({n})</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const Controls = (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 rounded-xl px-3 py-1.5" style={{ background: C.panel2, border: `1px solid ${C.border}` }}>
+        <Search size={15} color={C.sub} /><input value={q} onChange={(e) => { setQ(e.target.value); setShow(18); }} placeholder="Search drills…" className="w-40 bg-transparent text-sm outline-none" style={{ color: C.text }} />
+      </div>
+      <Select label="" value={diff} onChange={(e) => { setDiff(e.target.value); setShow(18); }} options={["All", ...DIFFS]} />
+    </div>
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        <Select label="" value={cat} onChange={(e) => { setCat(e.target.value); setShow(24); }} options={["All", ...DRILL_CATS]} />
-        <Select label="" value={diff} onChange={(e) => { setDiff(e.target.value); setShow(24); }} options={["All", ...DIFFS]} />
-        <div className="ml-auto self-end text-sm" style={{ color: C.sub }}>{filtered.length} of 100 drills</div>
+      <div className="flex items-center gap-2">
+        <div><div className="text-xl font-extrabold" style={{ color: C.text }}>Sales Drills</div>
+          <div className="text-xs" style={{ color: C.sub }}>100 AI roleplay drills, organized by selling vertical. Pick your battlefield and run reps.</div></div>
       </div>
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.slice(0, show).map((d) => (
-          <Card key={d.id} className="osp-hover p-4">
-            <div className="mb-2 flex items-center justify-between"><Pill color={C.blue}>{d.cat}</Pill><Pill color={diffColor[d.diff]}>{d.diff}</Pill></div>
-            <div className="font-semibold" style={{ color: C.text }}>{d.title}</div>
-            <div className="mt-1 text-xs" style={{ color: C.sub }}>{d.scenario} · {d.mins} min</div>
-            <div className="mt-3 flex gap-2">
-              <Btn kind="soft" className="flex-1" onClick={() => setSel(d)}>Details</Btn>
-              <Btn kind="gold" className="flex-1" onClick={() => launch(d)}><Play size={14} /> Launch</Btn>
-            </div>
+      {Tabs}
+
+      {vert === "All" ? (
+        <div className="space-y-6">
+          {Controls}
+          {verticals.map((v) => {
+            const M = VERTICAL_META[v];
+            const list = DRILLS.filter((d) => d.vertical === v && match(d));
+            if (!list.length) return null;
+            return (
+              <div key={v}>
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="rounded-lg p-1.5" style={{ background: M.color + "22", border: `1px solid ${M.color}55` }}><M.icon size={16} color={M.color} /></div>
+                  <div className="flex-1"><div className="font-bold" style={{ color: C.text }}>{v}</div><div className="text-xs" style={{ color: C.sub }}>{M.blurb}</div></div>
+                  <button onClick={() => { setVert(v); setShow(18); }} className="text-xs font-semibold" style={{ color: M.color }}>See all {list.length} →</button>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{list.slice(0, 6).map(DrillCard)}</div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Card className="flex items-center gap-3 p-4" style={{ background: VERTICAL_META[vert].color + "12" }}>
+            <div className="rounded-xl p-2.5" style={{ background: VERTICAL_META[vert].color + "22", border: `1px solid ${VERTICAL_META[vert].color}55` }}>{(() => { const I = VERTICAL_META[vert].icon; return <I size={22} color={VERTICAL_META[vert].color} />; })()}</div>
+            <div className="flex-1"><div className="font-bold" style={{ color: C.text }}>{vert} drills</div><div className="text-xs" style={{ color: C.sub }}>{VERTICAL_META[vert].blurb}</div></div>
           </Card>
-        ))}
-      </div>
-      {show < filtered.length && <div className="text-center"><Btn kind="soft" onClick={() => setShow(show + 24)}>Load more drills ({filtered.length - show} left)</Btn></div>}
+          {Controls}
+          {(() => {
+            const list = DRILLS.filter((d) => d.vertical === vert && match(d));
+            return (
+              <>
+                <div className="text-xs" style={{ color: C.sub }}>{list.length} drills</div>
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{list.slice(0, show).map(DrillCard)}</div>
+                {show < list.length && <div className="text-center"><Btn kind="soft" onClick={() => setShow(show + 18)}>Load more ({list.length - show} left)</Btn></div>}
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       <Modal open={!!sel} onClose={() => setSel(null)} title={sel?.title}>
         {sel && <div className="space-y-3 text-sm">
-          <div className="flex gap-2"><Pill color={C.blue}>{sel.cat}</Pill><Pill color={diffColor[sel.diff]}>{sel.diff}</Pill><Pill color={C.purple}>{sel.mins} min</Pill></div>
+          <div className="flex flex-wrap gap-2"><Pill color={VERTICAL_META[sel.vertical]?.color || C.blue}>{sel.vertical}</Pill><Pill color={C.blue}>{sel.cat}</Pill><Pill color={diffColor[sel.diff]}>{sel.diff}</Pill><Pill color={C.purple}>{sel.mins} min</Pill></div>
           <Row label="Objective" v={sel.objective} /><Row label="Scenario" v={sel.scenario} /><Row label="Instructions" v={sel.instructions} /><Row label="Success criteria" v={sel.success} />
           <Btn kind="gold" className="w-full py-3" onClick={() => launch(sel)}><Play size={16} /> Launch AI roleplay</Btn>
         </div>}
@@ -2371,6 +2581,7 @@ function DrillsView({ store }) {
     </div>
   );
 }
+
 const Row = ({ label, v }) => <div><div className="text-xs font-semibold" style={{ color: C.gold }}>{label}</div><div style={{ color: C.text }}>{v}</div></div>;
 
 function AICommand() {
