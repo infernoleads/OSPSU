@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070809" />
+
+    <title>OSP Sales University</title>
+    <meta name="description" content="Recruit, train, certify, and develop elite sales professionals through OSP Sales University." />
+    <link rel="canonical" href="https://www.ospsu.com/" />
+
+    <!-- Favicon (gold OSP mark, inline SVG placeholder — swap for the official favicon any time) -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e9b949'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='26' font-weight='800' fill='%2315100a' text-anchor='middle'%3EOSP%3C/text%3E%3C/svg%3E" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OSP Sales University" />
+    <meta property="og:title" content="OSP Sales University" />
+    <meta property="og:description" content="Recruit, train, certify, and develop elite sales professionals through OSP Sales University." />
+    <meta property="og:url" content="https://www.ospsu.com/" />
+    <meta property="og:image" content="https://www.ospsu.com/og-image.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OSP Sales University" />
+    <meta name="twitter:description" content="Recruit, train, certify, and develop elite sales professionals through OSP Sales University." />
+    <meta name="twitter:image" content="https://www.ospsu.com/og-image.png" />
+
+    <style>
+      html, body { margin: 0; background: #070809; }
+      #osp-splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #070809; z-index: 9999; transition: opacity .4s ease; }
+      #osp-splash .mark { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font: 800 22px Arial, sans-serif; color: #15100a; background: linear-gradient(135deg, #e9b949, #c8942b); box-shadow: 0 0 0 1px #e9b94955, 0 10px 30px #e9b94922; }
+      #osp-splash .t { color: #f3f1ec; font: 700 14px Arial, sans-serif; letter-spacing: .02em; }
+      #osp-splash .s { color: #e9b949; font: 700 10px Arial, sans-serif; letter-spacing: .18em; }
+      #osp-splash .dot { width: 7px; height: 7px; border-radius: 50%; background: #e9b949; animation: ospb 1s infinite ease-in-out; }
+      @keyframes ospb { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="osp-splash">
+      <div class="mark">OSP</div>
+      <div class="t">OSP Sales University</div>
+      <div class="s">BUILD THE FUTURE</div>
+      <div class="dot"></div>
+    </div>
+    <script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('osp-splash');if(s){s.style.opacity='0';setTimeout(function(){s.remove()},450)}},350)})</script>
+    <script type="module" src="/main.jsx"></script>
+  </body>
+</html>
